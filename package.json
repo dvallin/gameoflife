@@ -1,0 +1,36 @@
+{
+  "name": "gol",
+  "version": "1.0.0",
+  "main": "./src/index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "webpack",
+    "test": "jest",
+    "unit:watch": "jest --watch"
+  },
+  "files": [
+    "src"
+  ],
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "transform": {
+      "\\.ts$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "/test/.*\\.spec\\.ts$"
+  },
+  "devDependencies": {
+    "@types/jest": "^22.2.3",
+    "@types/rot-js": "^0.6.2",
+    "jest": "^22.4.3",
+    "ts-jest": "^22.4.4",
+    "ts-loader": "^4.2.0",
+    "typescript": "^2.8.3",
+    "webpack": "^4.6.0"
+  },
+  "dependencies": {
+    "rot-js": "^0.6.5"
+  }
+}
