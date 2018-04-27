@@ -45,6 +45,24 @@ export class Game {
 
         this.input!.register()
 
+        this.initializeMap()
+    }
+
+    public run(): void {
+        const next = Date.now() + (1000 / this.settings.framerate!)
+        this.tick()
+        const untilNextFrame = next - Date.now()
+        setTimeout(() => this.run(), untilNextFrame)
+    }
+
+    public tick(): void {
+        this.turn += 1
+        this.reactToUserInput()
+        this.updateMap(15)
+        this.renderMap()
+    }
+
+    private initializeMap() {
         for (let y = 0; y < this.displayOptions.height!; y++) {
             for (let x = 0; x < this.displayOptions.width!; x++) {
                 this.map[this.index(x, y)] = Cell.Dead
@@ -61,33 +79,6 @@ export class Game {
         this.map[this.index(15, 15)] = Cell.Alive
     }
 
-    public run(): void {
-        const next = Date.now() + (1000 / this.settings.framerate!)
-        this.tick()
-        const untilNextFrame = next - Date.now()
-        setTimeout(() => this.run(), untilNextFrame)
-    }
-
-    public tick(): void {
-        this.turn += 1
-        this.turn = this.turn % 15
-        if (this.turn === 0) {
-            this.map = this.nextMap()
-        }
-
-        this.display.clear()
-        if (this.input) {
-            if (this.input!.mouse.left) {
-                this.setCell(this.input.mouse.x, this.input.mouse.y, Cell.Alive)
-            }
-        }
-        for (let y = 0; y < this.displayOptions.height!; y++) {
-            for (let x = 0; x < this.displayOptions.width!; x++) {
-                this.display.draw(x, y, this.map[this.index(x, y)] === Cell.Alive ? "A" : ".")
-            }
-        }
-    }
-
     private nextMap(): Cell[] {
         const nextMap: Cell[] = []
         for (let y = 0; y < this.displayOptions.height!; y++) {
@@ -101,6 +92,29 @@ export class Game {
             }
         }
         return nextMap
+    }
+
+    private updateMap(frameSkip: number) {
+        if (this.turn % frameSkip === 0) {
+            this.map = this.nextMap()
+        }
+    }
+
+    private reactToUserInput(): void {
+        if (this.input) {
+            if (this.input.mouse.left) {
+                this.setCell(this.input.mouse.x, this.input.mouse.y, Cell.Alive)
+            }
+        }
+    }
+
+    private renderMap(): void {
+        this.display.clear()
+        for (let y = 0; y < this.displayOptions.height!; y++) {
+            for (let x = 0; x < this.displayOptions.width!; x++) {
+                this.display.draw(x, y, this.map[this.index(x, y)] === Cell.Alive ? "A" : ".")
+            }
+        }
     }
 
     private getCell(x: number, y: number): Cell {
