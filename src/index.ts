@@ -1,5 +1,6 @@
 import ROT, { Display } from "rot-js"
-import { Cell, update } from "./game-of-life";
+import { Cell, update } from "./game-of-life"
+import { Input } from "./input";
 
 export const DEFAULT_WIDTH = 30
 export const DEFAULT_HEIGHT = 30
@@ -10,7 +11,7 @@ export interface GameSettings {
 
 export function defaultSettings(): GameSettings {
     return {
-        framerate: 2
+        framerate: 30
     }
 }
 
@@ -20,6 +21,9 @@ export class Game {
     private displayOptions: ROT.DisplayOptions
 
     private map: Cell[] = []
+    private turn: number = 0
+
+    private input: Input | undefined = undefined
 
     constructor(settings?: GameSettings) {
         this.settings = Object.assign(defaultSettings(), settings)
@@ -33,10 +37,14 @@ export class Game {
             bg: "black"
         }
         this.display = new ROT.Display(this.displayOptions)
+        this.input = new Input((e) => this.display.eventToPosition(e))
     }
 
     public build(): void {
         document.body.appendChild(this.display.getContainer())
+
+        this.input!.register()
+
         for (let y = 0; y < this.displayOptions.height!; y++) {
             for (let x = 0; x < this.displayOptions.width!; x++) {
                 this.map[this.index(x, y)] = Cell.Dead
@@ -61,8 +69,18 @@ export class Game {
     }
 
     public tick(): void {
+        this.turn += 1
+        this.turn = this.turn % 15
+        if (this.turn === 0) {
+            this.map = this.nextMap()
+        }
+
         this.display.clear()
-        this.map = this.nextMap()
+        if (this.input) {
+            if (this.input!.mouse.left) {
+                this.setCell(this.input.mouse.x, this.input.mouse.y, Cell.Alive)
+            }
+        }
         for (let y = 0; y < this.displayOptions.height!; y++) {
             for (let x = 0; x < this.displayOptions.width!; x++) {
                 this.display.draw(x, y, this.map[this.index(x, y)] === Cell.Alive ? "A" : ".")
@@ -90,6 +108,13 @@ export class Game {
             return Cell.Dead
         }
         return this.map[this.index(x, y)]
+    }
+
+    private setCell(x: number, y: number, cell: Cell) {
+        if (x < 0 || x >= this.displayOptions.width! || y < 0 || y >= this.displayOptions.height!) {
+            return
+        }
+        this.map[this.index(x, y)] = cell
     }
 
     private index(x: number, y: number): number {
